@@ -109,9 +109,7 @@ function RestaurantsTab() {
           <RestaurantSidebar />
         </div>
         <div className={styles.content}>
-          {restaurantData.map((section) => (
-            <RestaurantSection key={section.title} {...section} />
-          ))}
+          <RestaurantSection />
         </div>
       </section>
     </Box>

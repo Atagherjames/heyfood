@@ -1,3 +1,4 @@
+"use client";
 import {
   Typography,
   RadioGroup,
@@ -6,8 +7,22 @@ import {
   FormControl,
 } from "@mui/material";
 import SortIcon from "@mui/icons-material/Sort";
+import { useAppContext } from "@/context/appContext";
+
+const sortOptions = [
+  { label: "Most Popular", value: "most_popular" },
+  { label: "Highest rated", value: "highest_rated" },
+  { label: "Newest", value: "newest" },
+  { label: "Most Rated", value: "most_rated" },
+];
 
 const RestaurantSidebar = () => {
+  const { state, setSort } = useAppContext();
+
+  const handleSortChange = (event) => {
+    setSort(event.target.value);
+  };
+
   return (
     <aside
       style={{
@@ -57,27 +72,30 @@ const RestaurantSidebar = () => {
 
       {/* Radio buttons */}
       <FormControl component="fieldset">
-        <RadioGroup name="sort-options" style={{ gap: "6px" }}>
-          {["Most Popular", "Highest rated", "Newest", "Most Rated"].map(
-            (label) => (
-              <FormControlLabel
-                key={label}
-                value={label}
-                control={
-                  <Radio
-                    size="small"
-                    sx={{
+        <RadioGroup
+          name="sort-options"
+          value={state.sort}
+          onChange={handleSortChange}
+          style={{ gap: "6px" }}
+        >
+          {sortOptions.map((option) => (
+            <FormControlLabel
+              key={option.value}
+              value={option.value}
+              control={
+                <Radio
+                  size="small"
+                  sx={{
+                    color: "#000",
+                    "&.Mui-checked": {
                       color: "#000",
-                      "&.Mui-checked": {
-                        color: "#000",
-                      },
-                    }}
-                  />
-                }
-                label={label}
-              />
-            )
-          )}
+                    },
+                  }}
+                />
+              }
+              label={option.label}
+            />
+          ))}
         </RadioGroup>
       </FormControl>
     </aside>

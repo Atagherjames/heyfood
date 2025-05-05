@@ -25,7 +25,7 @@ const Sidebar = ({ open, onClose }) => {
       onClose={onClose}
       PaperProps={{
         sx: {
-          width: isMobile ? "90vw" : 320,
+          width: isMobile ? "70vw" : 320,
           maxWidth: 500,
           padding: "0px",
           boxSizing: "border-box",

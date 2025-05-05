@@ -1,23 +1,40 @@
-import React, { useState, useRef } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
-import { Typography, Box, IconButton } from "@mui/material";
-import {
-  ArrowBack as ArrowBackIcon,
-  ArrowForward as ArrowForwardIcon,
-} from "@mui/icons-material";
+import { useState, useEffect } from "react";
+import { Box, Typography } from "@mui/material";
 import RestaurantCard from "./RestaurantCard";
-import "swiper/css";
-import "swiper/css/navigation";
+import RestaurantCardSkeleton from "./RestaurantCardSkeleton";
+import { useAppContext } from "@/context/appContext";
+import { fetchRestaurants } from "@/api/api";
 
-const RestaurantSection = ({ title, data }) => {
-  const [showAll, setShowAll] = useState(false);
-  const swiperRef = useRef(null);
-  const isAllRestaurants = title === "All Restaurants";
+const RestaurantSection = () => {
+  const { state } = useAppContext();
+  const { sort = "", search = "", tag = "" } = state;
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleSeeAllClick = () => {
-    setShowAll((prev) => !prev);
-  };
+  useEffect(() => {
+    const fetchAllRestaurants = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchRestaurants({
+          sort,
+          search,
+          tag,
+        });
+        setRestaurants(data);
+      } catch (err) {
+        setError(err);
+        setRestaurants([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllRestaurants();
+  }, [sort, search, tag]);
+
+  const skeletonArray = Array.from({ length: 6 });
 
   return (
     <Box
@@ -45,106 +62,32 @@ const RestaurantSection = ({ title, data }) => {
             fontSize: { xs: "1rem", sm: "1.25rem", md: "1.5rem" },
           }}
         >
-          {title}
+          All Restaurants
         </Typography>
-
-        {!isAllRestaurants && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <Typography
-              variant="subtitle2"
-              sx={{
-                color: "grey",
-                cursor: "pointer",
-                "&:hover": { textDecoration: "none" },
-              }}
-              onClick={handleSeeAllClick}
-            >
-              {showAll ? "Show Less" : "See all"}
-            </Typography>
-
-            <IconButton
-              onClick={() => swiperRef.current?.slidePrev()}
-              size="small"
-              sx={{
-                backgroundColor: "background.paper",
-                boxShadow: 1,
-                "&:hover": { backgroundColor: "action.hover" },
-              }}
-            >
-              <ArrowBackIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              onClick={() => swiperRef.current?.slideNext()}
-              size="small"
-              sx={{
-                backgroundColor: "background.paper",
-                boxShadow: 1,
-                "&:hover": { backgroundColor: "action.hover" },
-              }}
-            >
-              <ArrowForwardIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        )}
       </Box>
 
       {/* Content */}
-      {isAllRestaurants || showAll ? (
+      <Box sx={{ padding: "8px 0" }}>
         <Box
           sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            rowGap: "32px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "32px",
           }}
         >
-          {data.map((restaurant) => (
-            <Box
-              key={restaurant.id}
-              sx={{
-                flex: {
-                  xs: "1 1 100%",
-                  sm: "1 1 calc(50% - 16px)",
-                  md: "1 1 calc(50% - 16px)",
-                  lg: "1 1 calc(33.33% - 21.33px)",
-                },
-                maxWidth: {
-                  xs: "100%",
-                  sm: "calc(50% - 16px)",
-                  md: "calc(50% - 16px)",
-                  lg: "calc(33.33% - 21.33px)",
-                },
-                minWidth: "280px",
-              }}
-            >
-              <RestaurantCard {...restaurant} />
-            </Box>
-          ))}
-        </Box>
-      ) : (
-        <Box sx={{ padding: "8px 0" }}>
-          <Swiper
-            modules={[Navigation]}
-            onSwiper={(swiper) => (swiperRef.current = swiper)}
-            spaceBetween={24}
-            style={{ overflow: "hidden", width: "100%" }}
-            breakpoints={{
-              0: { slidesPerView: 1 },
-              600: { slidesPerView: 2 },
-              900: { slidesPerView: 2 },
-              1200: { slidesPerView: 3 },
-            }}
-          >
-            {data.map((restaurant) => (
-              <SwiperSlide key={restaurant.id}>
-                <Box sx={{ width: "100%" }}>
+          {loading
+            ? skeletonArray.map((_, index) => (
+                <Box key={index} sx={{ width: "100%" }}>
+                  <RestaurantCardSkeleton />
+                </Box>
+              ))
+            : restaurants.map((restaurant) => (
+                <Box key={restaurant._id} sx={{ width: "100%" }}>
                   <RestaurantCard {...restaurant} />
                 </Box>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+              ))}
         </Box>
-      )}
+      </Box>
     </Box>
   );
 };
